@@ -2,9 +2,11 @@
 
 Use your Android phone's camera as a webcam on Windows 11.
 
-Exo runs in the system tray. It uses [scrcpy](https://github.com/Genymobile/scrcpy) over adb (USB or wireless debugging) to pull H.264 video from the phone's camera, and it exposes that video as a native Windows virtual camera called **Phone Webcam**. The camera works in Windows Camera, browsers, Teams, Zoom, Discord, OBS and any other app that lists webcams. No phone app and no kernel driver are needed.
+> **Prototype.** Exo is an experiment, not a finished product. It works on my machine, but expect rough edges, noticeable latency, and setup steps that are still manual. There are no releases or installers yet, and things may change or break without notice.
 
-> **Status:** personal project, works on my machine. Expect rough edges, and some latency, which I'm still working on.
+Exo is built on top of [**VCamSample**](https://github.com/smourier/VCamSample) by [Simon Mourier](https://github.com/smourier). His sample shows how to build a Windows 11 virtual camera with Media Foundation, and its media source is the foundation of Exo's camera DLL. Many thanks to him for publishing it.
+
+Exo runs in the system tray. It uses [scrcpy](https://github.com/Genymobile/scrcpy) over adb (USB or wireless debugging) to pull H.264 video from the phone's camera, and it exposes that video as a native Windows virtual camera called **Phone Webcam**. The camera works in Windows Camera, browsers, Teams, Zoom, Discord, OBS and any other app that lists webcams. No phone app and no kernel driver are needed.
 
 ## How it works
 
@@ -81,7 +83,7 @@ Both the tray and the DLL write to `C:\Windows\Temp\Exo\logs`, one file per proc
 
 ## Credits
 
-- Exo started as a fork of [VCamSample](https://github.com/smourier/VCamSample) by Simon Mourier. Its Media Foundation virtual camera source is the foundation of `ExoCamSource`.
+- [VCamSample](https://github.com/smourier/VCamSample) by Simon Mourier (MIT). Exo started as a fork of it, and its Media Foundation virtual camera source is the foundation of `ExoCamSource`. The git history of this repo includes his original commits.
 - Video capture is done by [scrcpy](https://github.com/Genymobile/scrcpy) (Apache-2.0) by Genymobile. scrcpy is not included in this repository.
 
 ## License
