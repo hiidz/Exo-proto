@@ -24,7 +24,7 @@ private:
 		{
 			this->m_inner->AddRef();
 			*object = (IMFAttributes*)this;
-			WINTRACE(L"Activator QueryInterface IMFAttributes ok");
+			Log::Line(L"Activator QueryInterface IMFAttributes ok");
 			return S_OK;
 		}
 
@@ -35,4 +35,3 @@ private:
 private:
 	winrt::com_ptr<MediaSource> _source;
 };
-

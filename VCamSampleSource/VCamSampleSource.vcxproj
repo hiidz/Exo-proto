@@ -33,6 +33,7 @@
     <ProjectGuid>{52fb6b93-3aa6-4369-bed4-d4bff1f97b78}</ProjectGuid>
     <RootNamespace>VCamSampleSource</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>VCamSampleSource</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -148,6 +149,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(SolutionDir)Shared</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -186,6 +188,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(SolutionDir)Shared</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -219,27 +222,39 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\Shared\Log.h" />
+    <ClInclude Include="..\Shared\VCamClsid.h" />
+    <ClInclude Include="..\Shared\VCamPort.h" />
+    <ClInclude Include="..\Shared\VCamVideoSettings.h" />
     <ClInclude Include="Activator.h" />
     <ClInclude Include="EnumNames.h" />
     <ClInclude Include="FrameGenerator.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="H264Decoder.h" />
     <ClInclude Include="MediaSource.h" />
     <ClInclude Include="MediaStream.h" />
     <ClInclude Include="MFTools.h" />
+    <ClInclude Include="NoSignal.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="StreamClient.h" />
     <ClInclude Include="Tools.h" />
     <ClInclude Include="Undocumented.h" />
-    <ClInclude Include="WinTrace.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Shared\Log.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="Activator.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="EnumNames.cpp" />
     <ClCompile Include="FrameGenerator.cpp" />
+    <ClCompile Include="H264Decoder.cpp" />
     <ClCompile Include="MediaSource.cpp" />
     <ClCompile Include="MediaStream.cpp" />
     <ClCompile Include="MFTools.cpp" />
+    <ClCompile Include="NoSignal.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">Create</PrecompiledHeader>
@@ -248,8 +263,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="StreamClient.cpp" />
     <ClCompile Include="Tools.cpp" />
-    <ClCompile Include="WinTrace.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

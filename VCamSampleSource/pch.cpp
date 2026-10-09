@@ -1,5 +1,4 @@
-// pch.cpp: source file corresponding to the pre-compiled header
+// Empty by design: MSVC needs one translation unit that includes the PCH header
+// in order to generate the .pch.
 
 #include "pch.h"
-
-// When you are using pre-compiled headers, this source file is necessary for compilation to succeed.

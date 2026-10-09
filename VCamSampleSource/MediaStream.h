@@ -1,4 +1,11 @@
 #pragma once
+#include "StreamClient.h"
+
+// The single video stream: owns the StreamClient that pulls decoded frames off
+// the socket, and fills each sample the Frame Server asks for.
+//
+// Offers exactly one media type, built at Initialize from [video] in vcam.ini.
+// See the note there for why there is one rather than a ladder of sizes.
 
 struct MediaStream : winrt::implements<MediaStream, CBaseAttributes<IMFAttributes>, IMFMediaStream2, IKsControl>
 {
@@ -24,10 +31,7 @@ public:
 	STDMETHOD_(NTSTATUS, KsEvent)(PKSEVENT Event, ULONG EventLength, LPVOID EventData, ULONG DataLength, ULONG* BytesReturned);
 
 public:
-	MediaStream() :
-		_index(0),
-		_state(MF_STREAM_STATE_STOPPED),
-		_format(GUID_NULL)
+	MediaStream()
 	{
 		SetBaseAttributesTraceName(L"MediaStreamAtts");
 	}
@@ -48,13 +52,38 @@ private:
 	}
 #endif
 
-	winrt::slim_mutex  _lock;
-	MF_STREAM_STATE _state;
+	// True if `sample` now holds a decoded frame from the phone.
+	bool FillFromStream(IMFSample* sample);
+
+	winrt::slim_mutex _lock;
+	MF_STREAM_STATE _state = MF_STREAM_STATE_STOPPED;
+	bool _allocatorReady = false;
+	StreamClient _client;
+
+#if defined(VCAM_DEBUG_PATTERN)
 	FrameGenerator _generator;
-	GUID _format;
+#endif
+
+	// The size the CLIENT negotiated, not necessarily the size the phone sends.
+	// Set in Start() from the current media type; everything writing into an
+	// allocator sample must use these, never a compile-time constant.
+	UINT32 _width = 1920;
+	UINT32 _height = 1080;
+	// Derived from [video] fps at Initialize. Must stay consistent with the
+	// MF_MT_FRAME_RATE on the offered type, or the sample durations contradict
+	// the format the client negotiated.
+	LONGLONG _frameDuration = 10000000LL / 30;
+
+	// One-shot log guards. Members, not function-local statics: a static inside a
+	// member function is shared by every stream in the process, so whichever
+	// failed first would suppress the rest.
+	bool _loggedAlloc = false;
+	bool _loggedCopy = false;
+	bool _loggedFill = false;
+
 	wil::com_ptr_nothrow<IMFStreamDescriptor> _descriptor;
 	wil::com_ptr_nothrow<IMFMediaEventQueue> _queue;
 	wil::com_ptr_nothrow<IMFMediaSource> _source;
 	wil::com_ptr_nothrow<IMFVideoSampleAllocatorEx> _allocator;
-	int _index;
+	int _index = 0;
 };

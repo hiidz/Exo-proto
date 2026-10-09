@@ -1,50 +1,46 @@
 #pragma once
 
+#include <vector>
+
+// Debug-only D2D test pattern, compiled in by VCAM_DEBUG_PATTERN. The shipping
+// placeholder is RenderNoSignal in NoSignal.h, which shares nothing with this.
+//
+// CPU only: the render target is a WIC bitmap. A GPU path would be dead code
+// regardless, since MediaStream::SetD3DManager accepts a manager and ignores it.
 class FrameGenerator
 {
-	UINT _width;
-	UINT _height;
-	ULONGLONG _frame;
+	UINT _width = 0;
+	UINT _height = 0;
+	ULONGLONG _frame = 0;
 	MFTIME _prevTime;
-	UINT _fps;
-	HANDLE _deviceHandle;
-	wil::com_ptr_nothrow<ID3D11Texture2D> _texture;
+	UINT _fps = 0;
+
+	bool _connected = false;
+	uint64_t _bytesReceived = 0;
+	uint32_t _decodedFrames = 0;
+
 	wil::com_ptr_nothrow<ID2D1RenderTarget> _renderTarget;
 	wil::com_ptr_nothrow<ID2D1SolidColorBrush> _whiteBrush;
 	wil::com_ptr_nothrow<IDWriteTextFormat> _textFormat;
 	wil::com_ptr_nothrow<IDWriteFactory> _dwrite;
-	wil::com_ptr_nothrow<IMFTransform> _converter;
 	wil::com_ptr_nothrow<IWICBitmap> _bitmap;
-	wil::com_ptr_nothrow<IMFDXGIDeviceManager> _dxgiManager;
 
-	HRESULT CreateRenderTargetResources(UINT width, UINT height);
+	// The block colours depend only on grid position, so they are built once.
+	// Creating them per frame meant ~5000 COM allocations per frame.
+	std::vector<wil::com_ptr_nothrow<ID2D1SolidColorBrush>> _blockBrushes;
+	UINT _cols = 0;
+	UINT _rows = 0;
 
 public:
-	FrameGenerator() :
-		_width(0),
-		_height(0),
-		_frame(0),
-		_fps(0),
-		_deviceHandle(nullptr),
-		_prevTime(MFGetSystemTime())
-	{
+	FrameGenerator() : _prevTime(MFGetSystemTime()) {}
 
+	void SetStatus(bool connected, uint64_t bytes, uint32_t decodedFrames)
+	{
+		_connected = connected;
+		_bytesReceived = bytes;
+		_decodedFrames = decodedFrames;
 	}
 
-	~FrameGenerator()
-	{
-		if (_dxgiManager && _deviceHandle)
-		{
-			auto hr = _dxgiManager->CloseDeviceHandle(_deviceHandle); // don't report error at that point
-			if (FAILED(hr))
-			{
-				WINTRACE(L"FrameGenerator CloseDeviceHandle: 0x%08X", hr);
-			}
-		}
-	}
-
-	HRESULT SetD3DManager(IUnknown* manager, UINT width, UINT height);
-	const bool HasD3DManager() const;
 	HRESULT EnsureRenderTarget(UINT width, UINT height);
-	HRESULT Generate(IMFSample* sample, REFGUID format, IMFSample** outSample);
+	HRESULT Generate(IMFSample* sample, IMFSample** outSample);
 };

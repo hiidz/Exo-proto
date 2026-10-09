@@ -20,18 +20,20 @@ HRESULT Activator::Initialize()
 // IMFActivate
 STDMETHODIMP Activator::ActivateObject(REFIID riid, void** ppv)
 {
-	WINTRACE(L"Activator::ActivateObject '%s'", GUID_ToStringW(riid).c_str());
+	Log::Line(L"Activator::ActivateObject '%s'", GUID_ToStringW(riid).c_str());
 	RETURN_HR_IF_NULL(E_POINTER, ppv);
 	*ppv = nullptr;
 
-	// use undoc'd frame server property
+	// Undocumented Frame Server property carrying the pid of the app that asked
+	// for the camera. Logged because the DLL is loaded into every consumer, and
+	// which one opened this instance is otherwise not visible from inside it.
 	UINT32 pid = 0;
 	if (SUCCEEDED(GetUINT32(MF_FRAMESERVER_CLIENTCONTEXT_CLIENTPID, &pid)) && pid)
 	{
 		auto name = GetProcessName(pid);
 		if (!name.empty())
 		{
-			WINTRACE(L"Activator::ActivateObject client process '%s'", name.c_str());
+			Log::Line(L"Activator::ActivateObject client process '%s'", name.c_str());
 		}
 	}
 	RETURN_IF_FAILED_MSG(_source->QueryInterface(riid, ppv), "Activator::ActivateObject failed on IID %s", GUID_ToStringW(riid).c_str());
@@ -40,13 +42,13 @@ STDMETHODIMP Activator::ActivateObject(REFIID riid, void** ppv)
 
 STDMETHODIMP Activator::ShutdownObject()
 {
-	WINTRACE(L"Activator::ShutdownObject");
+	Log::Line(L"Activator::ShutdownObject");
 	return S_OK;
 }
 
 STDMETHODIMP Activator::DetachObject()
 {
-	WINTRACE(L"Activator::DetachObject");
+	Log::Line(L"Activator::DetachObject");
 	_source = nullptr;
 	return S_OK;
 }

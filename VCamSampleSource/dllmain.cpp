@@ -7,8 +7,10 @@
 #include "MediaStream.h"
 #include "MediaSource.h"
 #include "Activator.h"
+#include "Log.h"
 
-// 3cad447d-f283-4af4-a3b2-6f5363309f52
+// The one authoritative binary form of the CLSID. Shared/VCamClsid.h carries
+// the same value as a string for the tray; DllRegisterServer writes this one.
 GUID CLSID_VCam = { 0x3cad447d,0xf283,0x4af4,{0xa3,0xb2,0x6f,0x53,0x63,0x30,0x9f,0x52} };
 HMODULE _hModule;
 
@@ -18,23 +20,26 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
 	{
 	case DLL_PROCESS_ATTACH:
 		_hModule = hModule;
-		WinTraceRegister();
-		WINTRACE(L"DllMain DLL_PROCESS_ATTACH '%s'", GetCommandLine());
 		DisableThreadLibraryCalls(hModule);
 
+		// Fires for every RETURN_IF_FAILED/RETURN_HR in the DLL, which is the
+		// single best diagnostic this component has. "%s", not str: failure
+		// strings carry file paths and can contain a literal '%'.
+		//
+		// Nothing here touches the filesystem. Log::Line opens the file lazily
+		// on first write, never from under the loader lock.
 		wil::SetResultLoggingCallback([](wil::FailureInfo const& failure) noexcept
 			{
 				wchar_t str[2048];
 				if (SUCCEEDED(wil::GetFailureLogString(str, _countof(str), failure)))
 				{
-					WinTrace(2, 0, str); // 2 => error
+					Log::Line(L"%s", str);
 				}
 			});
 		break;
 
 	case DLL_PROCESS_DETACH:
-		WINTRACE(L"DllMain DLL_PROCESS_DETACH '%s'", GetCommandLine());
-		WinTraceUnregister();
+		Log::Close();
 		break;
 	}
 	return TRUE;
@@ -55,7 +60,7 @@ struct ClassFactory : winrt::implements<ClassFactory, IClassFactory>
 		if (FAILED(hr))
 		{
 			auto iid = GUID_ToStringW(riid);
-			WINTRACE(L"ClassFactory QueryInterface failed on IID %s", iid.c_str());
+			Log::Line(L"ClassFactory QueryInterface failed on IID %s", iid.c_str());
 		}
 		return hr;
 	}
@@ -71,19 +76,19 @@ STDAPI DllCanUnloadNow()
 {
 	if (winrt::get_module_lock())
 	{
-		WINTRACE(L"DllCanUnloadNow S_FALSE");
+		LOG_DETAIL(L"DllCanUnloadNow S_FALSE");
 		return S_FALSE;
 	}
 
 	winrt::clear_factory_cache();
-	WINTRACE(L"DllCanUnloadNow S_OK");
+	LOG_DETAIL(L"DllCanUnloadNow S_OK");
 	return S_OK;
 }
 
 _Check_return_
 STDAPI DllGetClassObject(_In_ REFCLSID rclsid, _In_ REFIID riid, _Outptr_ LPVOID FAR* ppv)
 {
-	WINTRACE(L"DllGetClassObject rclsid:%s riid:%s", GUID_ToStringW(rclsid).c_str(), GUID_ToStringW(riid).c_str());
+	Log::Line(L"DllGetClassObject rclsid:%s riid:%s", GUID_ToStringW(rclsid).c_str(), GUID_ToStringW(riid).c_str());
 	RETURN_HR_IF_NULL(E_POINTER, ppv);
 	*ppv = nullptr;
 
@@ -98,12 +103,12 @@ using registry_key = winrt::handle_type<registry_traits>;
 STDAPI DllRegisterServer()
 {
 	std::wstring exePath = wil::GetModuleFileNameW(_hModule).get();
-	WINTRACE(L"DllRegisterServer '%s'", exePath.c_str());
+	Log::Line(L"DllRegisterServer '%s'", exePath.c_str());
 	auto clsid = GUID_ToStringW(CLSID_VCam, false);
 	std::wstring path = L"Software\\Classes\\CLSID\\" + clsid + L"\\InprocServer32";
 
-	// note: a vcam *must* be registered in HKEY_LOCAL_MACHINE
-	// for the frame server to be able to talk with it.
+	// HKLM, not HKCU: the Frame Server runs as LOCAL SERVICE and cannot see the
+	// interactive user's hive, so an HKCU registration is invisible to it.
 	registry_key key;
 	RETURN_IF_WIN32_ERROR(RegWriteKey(HKEY_LOCAL_MACHINE, path.c_str(), key.put()));
 	RETURN_IF_WIN32_ERROR(RegWriteValue(key.get(), nullptr, exePath));
@@ -114,7 +119,7 @@ STDAPI DllRegisterServer()
 STDAPI DllUnregisterServer()
 {
 	std::wstring exePath = wil::GetModuleFileNameW(_hModule).get();
-	WINTRACE(L"DllUnregisterServer '%s'", exePath.c_str());
+	Log::Line(L"DllUnregisterServer '%s'", exePath.c_str());
 	auto clsid = GUID_ToStringW(CLSID_VCam, false);
 	std::wstring path = L"Software\\Classes\\CLSID\\" + clsid;
 	RETURN_IF_WIN32_ERROR(RegDeleteTree(HKEY_LOCAL_MACHINE, path.c_str()));

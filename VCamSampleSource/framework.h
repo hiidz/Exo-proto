@@ -1,18 +1,16 @@
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+#define WIN32_LEAN_AND_MEAN
 
 #define _CRTDBG_MAP_ALLOC
 #include <cstdlib>
 #include <crtdbg.h>
 #ifdef _DEBUG
 #define DBG_NEW new ( _NORMAL_BLOCK , __FILE__ , __LINE__ )
-// replace _NORMAL_BLOCK with _CLIENT_BLOCK if you want the allocations to be of _CLIENT_BLOCK type
 #else
 #define DBG_NEW new
 #endif
 
-// Windows Header Files
 #include <windows.h>
 #include <evntprov.h>
 #include <strsafe.h>
@@ -34,23 +32,21 @@
 #include <uuids.h>
 #include "winrt\Windows.ApplicationModel.h"
 
-// std
 #include <string>
 #include <format>
 
-// WIL, requires "Microsoft.Windows.ImplementationLibrary" nuget
+// WIL, requires the "Microsoft.Windows.ImplementationLibrary" nuget package
 #include "wil/result.h"
 #include "wil/stl.h"
 #include "wil/win32_helpers.h"
 #include "wil/com.h"
 
-// C++/WinRT, requires "Microsoft.Windows.CppWinRT" nuget
+// C++/WinRT, requires the "Microsoft.Windows.CppWinRT" nuget package
 #include "winrt/base.h"
 
-// project globals
-#include "wintrace.h"
+#include "Log.h"
 
 #pragma comment(lib, "mfsensorgroup")
-// 3cad447d-f283-4af4-a3b2-6f5363309f52
-extern GUID CLSID_VCam;
 
+// Defined in dllmain.cpp. Same value as kVCamSourceClsid in Shared/VCamClsid.h.
+extern GUID CLSID_VCam;

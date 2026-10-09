@@ -1,5 +1,13 @@
 #pragma once
 
+// The COM media source Media Foundation activates for the virtual camera. Owns
+// the event queue, the presentation descriptor and the streams; all the actual
+// video work is in MediaStream.
+//
+// Instantiated separately in every process that opens the camera -- the Frame
+// Server as LOCAL SERVICE, and each consuming app under its own account -- so
+// nothing here may assume a per-machine singleton or reach HKCU.
+
 struct MediaStream;
 
 struct MediaSource : winrt::implements<MediaSource, CBaseAttributes<IMFAttributes>, IMFMediaSourceEx, IMFGetService, IKsControl, IMFSampleAllocatorControl>
@@ -24,7 +32,8 @@ public:
 	STDMETHOD(GetStreamAttributes)(DWORD dwStreamIdentifier, IMFAttributes** ppAttributes);
 	STDMETHOD(SetD3DManager)(IUnknown* pManager);
 
-	// IMFMediaSource2 : we don't currently use it, change IMFMediaSourceEx to IMFMediaSource2 to enable it
+	// IMFMediaSource2. Not currently used: change IMFMediaSourceEx to
+	// IMFMediaSource2 in the implements<> list above to enable it.
 	STDMETHOD(SetMediaType)(DWORD dwStreamID, IMFMediaType* pMediaType);
 
 	// IMFGetService
@@ -48,7 +57,9 @@ public:
 		{
 			auto stream = winrt::make_self<MediaStream>();
 			stream->Initialize(this, i);
-			_streams[i].attach(stream.detach()); // this is needed because of wil+winrt mumbo-jumbo, as "_streams[i] = stream.detach()" just cause one extra AddRef
+			// attach(), not assignment: assigning a detached raw pointer to a
+			// wil::com_ptr_nothrow AddRefs it again and leaks the stream.
+			_streams[i].attach(stream.detach());
 		}
 	}
 
@@ -58,7 +69,9 @@ private:
 #if _DEBUG
 	int32_t query_interface_tearoff(winrt::guid const& id, void** object) const noexcept override
 	{
-		// undoc'd
+		// Undocumented interfaces the pipeline probes for. Answered quietly so
+		// they skip the logging RETURN_HR_MSG at the bottom, which would
+		// otherwise report a failure on every activation.
 		if (id == winrt::guid_of<IMFDeviceSourceInternal>() ||
 			id == winrt::guid_of<IMFDeviceSourceInternal2>() ||
 			id == winrt::guid_of<IMFDeviceTransformManager>() ||
@@ -78,10 +91,11 @@ private:
 	int GetStreamIndexById(DWORD id);
 
 private:
-	const int _numStreams = 1;  // 1 stream for now
+	// One device, one stream, one client -- MF_DEVICESTREAM_FRAMESERVER_SHARED
+	// is set to 0 to match. Multi-device is a non-goal, not a missing feature.
+	const int _numStreams = 1;
 	winrt::slim_mutex _lock;
 	winrt::com_array<wil::com_ptr_nothrow<MediaStream>> _streams;
 	wil::com_ptr_nothrow<IMFMediaEventQueue> _queue;
 	wil::com_ptr_nothrow<IMFPresentationDescriptor> _descriptor;
 };
-
