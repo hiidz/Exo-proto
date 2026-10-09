@@ -7,7 +7,7 @@
 // and pulling in windows.h would drag the old winsock.h in ahead of it.
 //
 // Both char and wchar_t overloads exist because the two halves of the product
-// speak different string types natively -- BlackHole is std::string, the Media
+// speak different string types natively -- ExoCore is std::string, the Media
 // Foundation layer is wide (GUID_ToStringW and friends). One sink, two front
 // doors: the conversion happens once here rather than at every call site.
 

@@ -48,5 +48,5 @@
 
 #pragma comment(lib, "mfsensorgroup")
 
-// Defined in dllmain.cpp. Same value as kVCamSourceClsid in Shared/VCamClsid.h.
+// Defined in dllmain.cpp from kVCamSourceClsid in Shared/VCamClsid.h.
 extern GUID CLSID_VCam;

@@ -58,7 +58,7 @@ inline VCamVideoSettings ReadVCamVideoSettings(const std::wstring& iniPath)
 
 // Resolves vcam.ini next to the CALLING module -- the exe for the tray, the DLL
 // for the capture source. That makes co-location a deployment requirement: if
-// VCamSampleSource.dll and vcam.ini end up in different folders the DLL quietly
+// ExoCamSource.dll and vcam.ini end up in different folders the DLL quietly
 // uses defaults while the tray uses the file, which is the exact divergence this
 // header exists to prevent. MediaStream::Initialize traces the path it read for
 // that reason.

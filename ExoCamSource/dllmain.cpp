@@ -8,10 +8,9 @@
 #include "MediaSource.h"
 #include "Activator.h"
 #include "Log.h"
+#include "VCamClsid.h"
 
-// The one authoritative binary form of the CLSID. Shared/VCamClsid.h carries
-// the same value as a string for the tray; DllRegisterServer writes this one.
-GUID CLSID_VCam = { 0x3cad447d,0xf283,0x4af4,{0xa3,0xb2,0x6f,0x53,0x63,0x30,0x9f,0x52} };
+GUID CLSID_VCam = kVCamSourceClsid;
 HMODULE _hModule;
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)

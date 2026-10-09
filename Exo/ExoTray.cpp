@@ -141,12 +141,15 @@ namespace
     // needs no protocol with anything. Pair with UnregisterVirtualCamera().
     HRESULT RegisterVirtualCamera()
     {
+        wchar_t clsid[39];
+        StringFromGUID2(kVCamSourceClsid, clsid, ARRAYSIZE(clsid));
+
         HRESULT hr = MFCreateVirtualCamera(
             MFVirtualCameraType_SoftwareCameraSource,
             MFVirtualCameraLifetime_Session,
             MFVirtualCameraAccess_CurrentUser,
             kVCamFriendlyName,
-            kVCamSourceClsid,
+            clsid,
             nullptr,
             0,
             &g_vcam);
@@ -596,7 +599,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR, int)
     if (FAILED(vcamHr))
     {
         const std::wstring msg = L"Could not start the virtual camera.\n"
-            L"Make sure VCamSampleSource.dll is registered (regsvr32, as admin).\n\n"
+            L"Make sure ExoCamSource.dll is registered (regsvr32, as admin).\n\n"
             + FormatHResult(vcamHr);
         MessageBoxW(nullptr, msg.c_str(), L"VCam Tray", MB_OK | MB_ICONERROR);
         Shell_NotifyIconW(NIM_DELETE, &g_nid);
