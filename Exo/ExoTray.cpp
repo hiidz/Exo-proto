@@ -117,7 +117,7 @@ namespace
             const std::wstring msg = L"Missing " + std::wstring(whatFor) + L":\n" + path +
                 L"\n\nCopy the scrcpy release folder (adb.exe, scrcpy-server, and its DLLs) "
                 L"next to Exo.exe.";
-            MessageBoxW(nullptr, msg.c_str(), L"VCam Tray", MB_OK | MB_ICONERROR);
+            MessageBoxW(nullptr, msg.c_str(), L"Exo", MB_OK | MB_ICONERROR);
             return false;
         }
         return true;
@@ -548,7 +548,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR, int)
 
     if (FAILED(MFStartup(MF_VERSION)))
     {
-        MessageBoxW(nullptr, L"MFStartup failed.", L"VCam Tray", MB_OK | MB_ICONERROR);
+        MessageBoxW(nullptr, L"MFStartup failed.", L"Exo", MB_OK | MB_ICONERROR);
         CoUninitialize();
         ReleaseMutex(hMutex);
         CloseHandle(hMutex);
@@ -564,7 +564,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR, int)
     RegisterClassW(&wc);
 
     // Never shown. It exists to own the notification icon and pump messages.
-    g_hwnd = CreateWindowW(kClassName, L"VCam Tray", 0, 0, 0, 0, 0,
+    g_hwnd = CreateWindowW(kClassName, L"Exo", 0, 0, 0, 0, 0,
         nullptr, nullptr, hInstance, nullptr);
 
     g_nid.cbSize = sizeof(g_nid);
@@ -601,7 +601,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR, int)
         const std::wstring msg = L"Could not start the virtual camera.\n"
             L"Make sure ExoCamSource.dll is registered (regsvr32, as admin).\n\n"
             + FormatHResult(vcamHr);
-        MessageBoxW(nullptr, msg.c_str(), L"VCam Tray", MB_OK | MB_ICONERROR);
+        MessageBoxW(nullptr, msg.c_str(), L"Exo", MB_OK | MB_ICONERROR);
         Shell_NotifyIconW(NIM_DELETE, &g_nid);
         MFShutdown();
         CoUninitialize();
